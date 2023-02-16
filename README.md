@@ -11,7 +11,7 @@ With code from:
 1. Schmid, V. J., Cremer, M. & Cremer, T. Quantitative analyses of the 3D nuclear landscape recorded with super-resolved fluorescence microscopy. Methods 123, 33–46 (2017).
 
 ## What is this?
-The macros and scripts in this repository enable the spatial distribution of nuclear spots relative to the chromatin distribution, specifically in 3D structured illuminations microscopy (3D SIM) data. 
+The macros and scripts in this repository enable the analysis of spatial distribution of nuclear spots relative to the chromatin distribution, specifically in 3D structured illuminations microscopy (3D SIM) data. 
 
 ## List of scripts
 1) A macro to classify the chromatin into n classes (work in progress)
