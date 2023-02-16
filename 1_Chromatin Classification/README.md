@@ -7,5 +7,14 @@ Once you have that, inspect the images and check whether the parameters seem cor
 
 For visualisation purposes, image synchronisation might be of interest (Analyze › Tools › Synchronize Windows).
 
+## Dependencies
+:heavy_exclamation_mark: The macros need certain update sites to run.  
+The update sites are:
+* CLIJ     
+* CLIJ2
+* clijx-assistant
+* clijx-assistant-extensions
+* SIMcheck
+
 ### How does the macro work?
 [Coming soon]
