@@ -34,6 +34,7 @@ The update sites are:
 * CLIJ2
 * clijx-assistant
 * clijx-assistant-extensions
+* SIMcheck
 * IJPB-plugins
 * ImageScience
 
