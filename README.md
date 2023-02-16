@@ -18,6 +18,26 @@ The macros and scripts in this repository enable the spatial distribution of nuc
 2) A macro to segment spots and repport on why chormatin class it is present (work in progress)
 3) An R script for some data wrangling and visualisation (this is not done yet)
 
+More details about each script is provided by following the links above.
+
+## How to use the macros
+Download the .ijm files then drag-and drop it in the FIJI bar. Then press "Run" on the bottom of the script editor.  
+(There are other ways of doing this. This is just one of them.)
+
+## Dependencies
+:heavy_exclamation_mark: The macros need certain update sites to run.
+
+The update sites are:
+* 3D ImageJ Suite
+* Java8
+* CLIJ     
+* CLIJ2
+* clijx-assistant
+* clijx-assistant-extensions
+* IJPB-plugins
+* ImageScience
+
+
 ## To do
 * Improve the input dialogs.
 * Provide sample images to run the scripts.
