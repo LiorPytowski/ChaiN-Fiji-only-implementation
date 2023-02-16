@@ -7,6 +7,9 @@ Once you have that, inspect the images and check whether the parameters seem cor
 
 For visualisation purposes, image synchronisation might be of interest (Analyze › Tools › Synchronize Windows).
 
+#### Why is this macro so slow?
+The most time consuming step is the multi Otsu implementations from the simpleITK library. This is computed on CPU. The more chromatin classes you create the slower it will be.
+
 ## Dependencies
 :heavy_exclamation_mark: The macros need certain update sites to run.  
 The update sites are:
