@@ -19,6 +19,7 @@ for (i = 0; i < lengthOf(filelist); i++) {
 		
 		input_image = getTitle();
 		Ext.CLIJ2_push(input_image);
+		Ext.CLIJx_pushMetaData();
 		
 ///Below we segment the nucleus
 // Gaussian Blur3D
@@ -162,7 +163,8 @@ if (preview == true) {		Ext.CLIJ2_pull(maxima_filtered_thresholded);}
 		    // Greater Constant. Here we use the min value for each class then threshold the input Dapi image.
 		    Ext.CLIJ2_greaterConstant(input_image, class[r], min_intensity);
 		    if (preview == true) {Ext.CLIJ2_pull(class[r]);
-		    rename("Class" + r);}
+			    rename("Class" + r);
+			    }
 			}
 		
 		// Since each class contains the previous we can simply summ all the masks to create the final label map.
@@ -186,6 +188,7 @@ if (preview == true) {		Ext.CLIJ2_pull(maxima_filtered_thresholded);}
 		Ext.CLIJ2_release(final_classes);
 		Ext.CLIJ2_pull(final_classes_float);// This is the final label map
 		run("Fire");
+		Ext.CLIJx_popMetaData();
 		Ext.CLIJ2_release(final_classes_float);
 
 			
