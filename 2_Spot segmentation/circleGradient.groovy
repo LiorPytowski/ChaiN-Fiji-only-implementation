@@ -1,9 +1,9 @@
-#@ Integer sizeX
-#@ Integer sizeY
-#@ Double centerX
-#@ Double centerY
-#@ Double innerRadius
-#@ Double outerRadius
+#@ Integer (label="Width of the image") sizeX
+#@ Integer (label="Height of the image") sizeY
+#@ Double (label="X coordinate of the center of the gradient") centerX
+#@ Double (label="Y coordinate of the center of the gradient") centerY
+#@ Double (label="Radius of inner circle") innerRadius
+#@ Double (label="Additional radius of outer gradient circle") outerRadius
 #@ UIService ui
 
 /**
