@@ -1,9 +1,9 @@
-close("\\Others");
+//close("\\Others");
 input = getTitle();
 
 small_structures_filter_range_sart = 0;
 small_structures_filter_range_end = 6;
-small_structures_filter_range_step = 0.2;
+small_structures_filter_range_step = 1;
 
 for (i = small_structures_filter_range_sart; i < small_structures_filter_range_end; i =  i + small_structures_filter_range_step) {
 selectWindow(input);
