@@ -1,4 +1,4 @@
-This repository contains imageJ/Fiji macros to reproduce the ChaiN workflow in Fiji only (or with as little additional software as possible)
+This repository contains imageJ/Fiji macros to reproduce the ChaiN workflow in Fiji only (or with as little additional software as possible).
 
 Cha*i*N stands for `Cha*i*N high-throughput analysis of the in situ Nucleome`  
 It was originally published by:
