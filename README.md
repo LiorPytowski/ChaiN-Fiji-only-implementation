@@ -15,7 +15,7 @@ The macros and scripts in this repository enable the analysis of spatial distrib
 
 ## List of scripts
 1) A [macro](https://github.com/LiorPytowski/ChaiN-Fiji-only-implementation/tree/main/1_Chromatin%20Classification) to classify the chromatin into n classes (work in progress)
-2) A macro to segment spots and repport on why chormatin class it is present (work in progress)
+2) A macro to segment spots and report on which chromatin class it is located (work in progress)
 3) An R script for some data wrangling and visualisation (this is not done yet)
 
 More details about each script is provided by following the links above.
