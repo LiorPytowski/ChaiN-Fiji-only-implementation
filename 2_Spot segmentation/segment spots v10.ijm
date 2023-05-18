@@ -213,6 +213,17 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	tablename= name_without_extension + ".csv";
 	close(tablename);
 	
+	//////////////////////////////////////////////////
+	///Distance foci to chromatin edges section
+	CONTINUE HERE
+	run("DiAna_Analyse", "img1=InputC" + ChannelA + " img2=InputC" + ChannelB + " lab1=" + centers_of_mass_map_A + " lab2=" + centers_of_mass_map_B + " adja kclosest=" + nb_neighbours);
+	selectWindow("AdjacencyResults");
+	Table.deleteColumn("Dist min EdgeA-EdgeB");	Table.deleteColumn("Dist min CenterA-EdgeB");	Table.deleteColumn("Dist min EdgeA-CenterB");
+	saveAs("AdjacencyResults", Output_Directory + File.separator + stack_name_without_extension + "@AdjacencyResultsCentersOfMass_C" + ChannelA + "vsC" + ChannelB + ".csv");
+	
+	
+	
+	
 
 	// If in debug mode
 	if (preview == true || pause == true) {
