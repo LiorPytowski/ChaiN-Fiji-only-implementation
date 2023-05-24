@@ -15,7 +15,10 @@ for (i = 0; i < lengthOf(filelist); i++) {
 		if (Threshold_and_conversion == true) {
 			run("Threshold and 16-bit Conversion", "auto-scale");
 		}
-		
+
+		if (bandpass_filter_boolean == true) {
+		run("Bandpass Filter...", "filter_large=&down_to_float filter_small=&up_to_float suppress=None process");
+		}		
 		
 		input_image = getTitle();
 		Ext.CLIJ2_push(input_image);
@@ -219,10 +222,13 @@ if (print_log == true ) {
 	print("Input_Directory: " + Input_Directory);
 	print("Output_Directory: " + Output_Directory);
 	print("Run SIMcheck's Threshold and 16-bit Conversion? " + Threshold_and_conversion);
+	print("Run bandpass filter? " + bandpass_filter_boolean);
+	print("Re bandpass filter, Filter large structures down to " + down_to_float);
+	print("Re bandpass filter, Filter small structures up to " + up_to_float);
 	print("Chromatin Channel: " + Chromatin_Channel);
-	print("number of segmented chromatin classes: " + nb_classes);
-	print("sigma_XY for gaussin blur: " + sigma_XY);
-	print("sigma_Z for gaussian blur: " + sigma_Z);
+	print("Number of segmented chromatin classes: " + nb_classes);
+	print("Sigma_XY for gaussin blur: " + sigma_XY);
+	print("Sigma_Z for gaussian blur: " + sigma_Z);
 	print("Threshold Method Gaussian filtered stack: " + Threshold_Method_Gaussian);
 	print("XY radius for maximum filter:  " +max_XY);
 	print("Z radius for maximum filter: " + max_Z);
@@ -243,7 +249,9 @@ print("Macro finished");
 #@ Integer(label="Chromatin Channel", value = 2) Chromatin_Channel
 #@ Integer(label="Number of DNA classes", value = 3, min=2, max=7, style="slider") nb_classes
 #@ Boolean(label="Run SIMcheck's Threshold and 16-bit Conversion?") Threshold_and_conversion
-
+#@ Boolean(label="Run bandpass filter?") bandpass_filter_boolean
+#@ Float (label="Filter large structures down to ", value = 1000000000000) down_to_float
+#@ Float (label="Filter small structures up to ", value = 0) up_to_float
 
 #@ String(value=" ", visibility="MESSAGE") TextP1
 #@ String(value="Gaussian and threshold algorithm to segment the nucleus. Defaults are XY = 6, Z = 2; Threshold = `Otsu`. ", visibility="MESSAGE") TextP2
