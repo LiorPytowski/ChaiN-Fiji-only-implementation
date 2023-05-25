@@ -42,7 +42,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	original_voxel_size_z = Voxel_depth;
 	new_voxel_size = Voxel_width;
 	Ext.CLIJ2_makeIsotropic(input_image_c1, isotropic_input, original_voxel_size_x, original_voxel_size_y, original_voxel_size_z, new_voxel_size);
-	Ext.CLIJ2_release(input_image_c1);
+	//Ext.CLIJ2_release(input_image_c1);
 		if (preview == true) {		Ext.CLIJ2_pull(isotropic_input);}
 	
 	// Laplacian Of Gaussian3D // 0 means no Gaussian
@@ -117,7 +117,44 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	resliced_label_map = getTitle();
 	run("glasbey_on_dark");
 	Ext.CLIJ2_pushCurrentZStack(resliced_label_map);
+	
+	// Exclude Labels Outside Size Range // This is the final label image
+	minimum_size = Min_volume;
+	maximum_size = Max_volume;
+	Ext.CLIJ2_excludeLabelsOutsideSizeRange(resliced_label_map, resliced_label_map_size_filtered, minimum_size, maximum_size);
+	Ext.CLIJ2_release(resliced_label_map);
+		if (preview == true) {		Ext.CLIJ2_pull(resliced_label_map_size_filtered);}
 		
+	
+	// This section will extract the statistics of lables so that we can create a centers of mass stack
+	setBatchMode(false);
+				intensity_input = input_image_c1;
+				labelmap = resliced_label_map_size_filtered;
+				Ext.CLIJ2_statisticsOfLabelledPixels(intensity_input, labelmap);
+				Ext.CLIJ2_release(resliced_label_map_size_filtered);
+				
+					// generate center of mass map channel B
+					centers_of_mass_map = "Centers_of_Mass";
+					newImage(centers_of_mass_map, "32-bit", width, height, slices);
+						
+					Stack.setXUnit("micron");
+					run("Properties...", "pixel_width=&Voxel_width pixel_height=&Voxel_height voxel_depth=&Voxel_depth");
+					
+					for (r = 0; r < nResults; r++) {
+					CMx = getResult("MASS_CENTER_X", r);
+					CMy = getResult("MASS_CENTER_Y", r);
+					CMz = getResult("MASS_CENTER_Z", r);
+					id_pix = getResult("IDENTIFIER", r);
+					
+					setSlice(CMz);
+					setPixel(CMx, CMy, id_pix);
+					}
+				rename("CentersOfMass");
+				centers_of_mass_stack = getTitle();
+				Ext.CLIJ2_push(centers_of_mass_stack);
+	Ext.CLIJ2_reportMemory();
+	
+	sdfsdfghsfdg
 	//////////////////////////////// Modulation Contrast Masking
 	// Open raw DV iamge
 	open(raw_inputs_directory + File.separator + filelist_raw_inputs[i]);
@@ -144,23 +181,18 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	if (preview == true) {		Ext.CLIJ2_pull(MCNR_Mask_Scaled);}
 	
 	// Multiply Images
-	Ext.CLIJ2_multiplyImages(MCNR_Mask_Scaled, resliced_label_map, resliced_label_map_Masked);
+	Ext.CLIJ2_multiplyImages(MCNR_Mask_Scaled, centers_of_mass_stack, centers_of_mass_stack_Masked);
 	Ext.CLIJ2_release(MCNR_Mask_Scaled);
-	if (preview == true) {		Ext.CLIJ2_pull(resliced_label_map);}
+	if (preview == true) {		Ext.CLIJ2_pull(centers_of_mass_stack_Masked);}
 	
-	// Exclude Labels Outside Size Range // This is the final label image
-	minimum_size = Min_volume;
-	maximum_size = Max_volume;
-	Ext.CLIJ2_excludeLabelsOutsideSizeRange(resliced_label_map_Masked, Labels_MCNR_and_size_filtered, minimum_size, maximum_size);
-	Ext.CLIJ2_release(resliced_label_map_Masked);
-		if (preview == true) {		Ext.CLIJ2_pull(Labels_MCNR_and_size_filtered);}
+
 		
 	
 	// Reduce Labels To Centroids
-	Ext.CLIJ2_reduceLabelsToCentroids(Labels_MCNR_and_size_filtered, final_centroids);
-	Ext.CLIJ2_release(Labels_MCNR_and_size_filtered);
-	Ext.CLIJ2_pull(final_centroids);
-	Image_final_label_centroids = getTitle();
+//	Ext.CLIJ2_reduceLabelsToCentroids(Labels_MCNR_and_size_filtered, final_centroids);
+//	Ext.CLIJ2_release(Labels_MCNR_and_size_filtered);
+//	Ext.CLIJ2_pull(final_centroids);
+//	Image_final_label_centroids = getTitle();
 	
 	
 
@@ -172,8 +204,8 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	///////////////////// Make measurements
 	// Statistics of labelled pixels
 	Ext.CLIJ2_push(name_classified_nuclei);
-	Ext.CLIJ2_push(Image_final_label_centroids);
-	Ext.CLIJ2_statisticsOfLabelledPixels(name_classified_nuclei, Image_final_label_centroids);
+	//Ext.CLIJ2_push(Image_final_label_centroids);
+	Ext.CLIJ2_statisticsOfLabelledPixels(name_classified_nuclei, centers_of_mass_stack_Masked);
 	
 	// Delete unnnecessary columns
 	Table.deleteColumn("BOUNDING_BOX_X");Table.deleteColumn("BOUNDING_BOX_Y");Table.deleteColumn("BOUNDING_BOX_Z");
