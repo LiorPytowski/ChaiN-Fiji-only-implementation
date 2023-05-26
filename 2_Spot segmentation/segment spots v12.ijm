@@ -107,10 +107,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	Ext.CLIJ2_erodeLabels(Watersheded_labels, eroded_labels, radius, relabel_islands);
 	Ext.CLIJ2_release(Watersheded_labels);
 	Ext.CLIJ2_pull(eroded_labels);
-	
-	// Clear GPU memory
-	Ext.CLIJ2_clear();
-	
+		
 	// Reslice to original z sice
 	run("Properties...", "pixel_width=0.041 pixel_height=0.041 voxel_depth=0.041");    ////////////////////////////////////////////////////////////////////////////////////////////SORT THIS OUT
 	run("Scale...", "width=" + width + " height=" + height + " depth=" + slices +" interpolation=None process create");
@@ -127,7 +124,8 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 		
 	
 	// This section will extract the statistics of lables so that we can create a centers of mass stack
-	setBatchMode(false);
+	//setBatchMode(false);
+	//setBatchMode("exit and display");
 				intensity_input = input_image_c1;
 				labelmap = resliced_label_map_size_filtered;
 				Ext.CLIJ2_statisticsOfLabelledPixels(intensity_input, labelmap);
@@ -152,9 +150,9 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 				rename("CentersOfMass");
 				centers_of_mass_stack = getTitle();
 				Ext.CLIJ2_push(centers_of_mass_stack);
-	Ext.CLIJ2_reportMemory();
+				close("Results");
 	
-	sdfsdfghsfdg
+	
 	//////////////////////////////// Modulation Contrast Masking
 	// Open raw DV iamge
 	open(raw_inputs_directory + File.separator + filelist_raw_inputs[i]);
@@ -185,17 +183,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	Ext.CLIJ2_release(MCNR_Mask_Scaled);
 	if (preview == true) {		Ext.CLIJ2_pull(centers_of_mass_stack_Masked);}
 	
-
-		
 	
-	// Reduce Labels To Centroids
-//	Ext.CLIJ2_reduceLabelsToCentroids(Labels_MCNR_and_size_filtered, final_centroids);
-//	Ext.CLIJ2_release(Labels_MCNR_and_size_filtered);
-//	Ext.CLIJ2_pull(final_centroids);
-//	Image_final_label_centroids = getTitle();
-	
-	
-
 	//////////////////////////// CLASSIFIED NUCLEI SECTION
 	open(classified_nuclei_inputs_directory + File.separator + filelist_classified_nuclei_inputs[i]);
 	name_classified_nuclei_without_extension = File.nameWithoutExtension;
@@ -204,7 +192,6 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	///////////////////// Make measurements
 	// Statistics of labelled pixels
 	Ext.CLIJ2_push(name_classified_nuclei);
-	//Ext.CLIJ2_push(Image_final_label_centroids);
 	Ext.CLIJ2_statisticsOfLabelledPixels(name_classified_nuclei, centers_of_mass_stack_Masked);
 	
 	// Delete unnnecessary columns
@@ -236,20 +223,63 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	
 	//////////////////////////////////////////////////
 
+			if (overlay == true) {
+			// Dilate Labels
+			radius = 2.0;
+			Ext.CLIJ2_dilateLabels(centers_of_mass_stack_Masked, centers_of_mass_stack_Masked_dilated, radius);
+			Ext.CLIJ2_release(centers_of_mass_stack_Masked);
+					
+			// Reduce Labels To Label Edges
+			Ext.CLIJ2_reduceLabelsToLabelEdges(centers_of_mass_stack_Masked_dilated, label_edges);
+			Ext.CLIJ2_release(centers_of_mass_stack_Masked_dilated);
+			
+			Ext.CLIJ2_pull(label_edges);
+			run("glasbey_on_dark");
+			Ext.CLIJ2_release(label_edges);
+			
+			run("Merge Channels...", "c1=&input_image_c1 c2=&label_edges create keep");
+			}
 
 	// If in debug mode
 	if (preview == true || pause == true) {
 		run("Tile");	
 		waitForUser("", "Process next image in folder?");	
 		} 
-	
 
 // End file loop and close all images
-//exit;
 run("Fresh Start");
 run("Close All");
+Ext.CLIJ2_clear();
+
     } 
 }
+
+
+///////////////////////
+//Log printing
+if (print_log == true ) {
+	getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+	print("\\Clear");
+	print("1 Choose folder with Raw DV inputs: " + raw_inputs_directory);
+	print("2 Choose folder with SIR inputs: " + processed_inputs_directory);
+	print("3 Choose folder with classified nuclei inputs: " + classified_nuclei_inputs_directory);
+	print("4 Choose where to save result tables: " + output_directory);
+	print("Spots Channel: " + Spots_Channel);
+	print("Gaussian radius for Laplacian Of Gaussian3D: " + Laplacian_Of_Gaussian);
+	print("Maximum3D Sphere filter radius: " + Maximum3D_Sphere_radiues);
+	print("Threshold method for the inverted Laplace: " + Threshold_Method_Inverted_laplace);
+	print("Threshold method for the Maximum3D filter: " + Threshold_Method_Maximum3D_filter);
+	print("Radius for 3D maxima detection: " + Detect_maxima_radius);
+	print("Label erosion, in voxels: " + erosion_radius);
+	print("Modulation contrast threshold: " + Modulation_contrast_threshold);
+	print("Minimum label volume in voxels: " + Min_volume);
+	print("Maximum label volume in voxels: " + Max_volume);
+
+	selectWindow("Log"); 
+	save(output_directory + File.separator + "Log.txt");
+	}
+print("Macro finished");
+
 
 
 
@@ -280,6 +310,7 @@ run("Close All");
 #@ Boolean(label="Pause macro at the end of each file?") pause
 #@ Boolean(label="Show all intermediary images?") preview
 #@ Boolean(label="Save a log with the settings used to run this macro?") print_log
+#@ Boolean(label="Display segmented particles over input image?") overlay
 
 #@ String(value="This macro requires the update sites CLIJ, CLIJ2, clijx-assistant, clijx-assistant-extensions and SIMcheck.", visibility="MESSAGE") TextP9
 #@ String(value="Running this macro takes approx. 4 to 10 minutes per image.Please be patient when running it.", visibility="MESSAGE") TextP11
