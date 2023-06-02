@@ -8,7 +8,7 @@
 	
 	///Distance foci to chromatin edges section
 	nb_neighbours = 2;
-	run("DiAna_Analyse", "img1=" + name_classified_nuclei + " img2=" + Image_final_label_centroids + " lab1=" + name_classified_nuclei + " lab2=" + Image_final_label_centroids + " adja kclosest=" + nb_neighbours);
+	run("DiAna_Analyse", "img1=A" +  + " img2=C" +  + " lab1=B" +  + " lab2=D" +  + " adja kclosest=" + nb_neighbours);
 	selectWindow("AdjacencyResults");
 	
 	
@@ -18,3 +18,14 @@
 	close(name_classified_nuclei_without_extension + "_SpotDistancesToClasses.csv");
 
 	
+	
+	
+	
+	
+	
+	
+	##################
+		///Distance foci to chromatin edges section
+	
+	run("DiAna_Analyse", "img1=B img2=A lab1=B lab2=A adja kclosest=1");
+	selectWindow("AdjacencyResults");

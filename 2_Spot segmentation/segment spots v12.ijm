@@ -31,7 +31,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	getVoxelSize(Voxel_width, Voxel_height, Voxel_depth, unit);
 	
 	run("Duplicate...", "duplicate channels=&Spots_Channel");
-	getDimensions(width, height, channels, slices, frames);
+	getDimensions(SIR_width, SIR_height, SIR_channels, SIR_slices, SIR_frames);
 	input_image_c1 = getTitle();
 	Ext.CLIJx_pushMetaData();
 	Ext.CLIJ2_pushCurrentZStack(input_image_c1);
@@ -110,7 +110,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 		
 	// Reslice to original z sice
 	run("Properties...", "pixel_width=0.041 pixel_height=0.041 voxel_depth=0.041");    ////////////////////////////////////////////////////////////////////////////////////////////SORT THIS OUT
-	run("Scale...", "width=" + width + " height=" + height + " depth=" + slices +" interpolation=None process create");
+	run("Scale...", "width=" + SIR_width + " height=" + SIR_height + " depth=" + SIR_slices +" interpolation=None process create");
 	resliced_label_map = getTitle();
 	run("glasbey_on_dark");
 	Ext.CLIJ2_pushCurrentZStack(resliced_label_map);
@@ -133,7 +133,7 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 				
 					// generate center of mass map channel B
 					centers_of_mass_map = "Centers_of_Mass";
-					newImage(centers_of_mass_map, "32-bit", width, height, slices);
+					newImage(centers_of_mass_map, "32-bit", SIR_width, SIR_height, SIR_slices);
 						
 					Stack.setXUnit("micron");
 					run("Properties...", "pixel_width=&Voxel_width pixel_height=&Voxel_height voxel_depth=&Voxel_depth");
@@ -158,10 +158,11 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	open(raw_inputs_directory + File.separator + filelist_raw_inputs[i]);
 	run("Duplicate...", "duplicate channels=1");
 	rename("RawInput");
-	
+		
 	// Modulation contrast calculation
 	run("Modulation Contrast", "angles=3 phases=5 z_window_half-width=1");
 	MCNR_not_scaled = getTitle();
+	getDimensions(MCNR_width, MCNR_height, MCNR_channels, MCNR_slices, MCNR_frames);
 	Ext.CLIJ2_pushCurrentZStack(MCNR_not_scaled);
 	
 	// Modulation contrast masking of resliced label map
@@ -172,9 +173,11 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	if (preview == true) {		Ext.CLIJ2_pull(MCNR_Mask);}
 	
 	// Rescale MCNR Mask to match label image dimensions
-	//Ext.CLIJ2_getDimensions(resliced_label_map, width, height, depth);
-	//Ext.CLIJ2_create3D(MCNR_Mask_Scaled, width, height, depth, 32);/////////////////////////////##################################################################
-	Ext.CLIJ2_downsample3D(MCNR_Mask, MCNR_Mask_Scaled, 2, 2, 1);  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////This assumes that the raw image is always 2x smaller than processed
+	factor_X = SIR_width / MCNR_width;
+	factor_Y = SIR_height / MCNR_height;
+	factor_Z = SIR_slices / MCNR_slices;
+	Ext.CLIJ2_downsample3D(MCNR_Mask, MCNR_Mask_Scaled, factor_X, factor_Y, factor_Z);
+	//Ext.CLIJ2_downsample3D(MCNR_Mask, MCNR_Mask_Scaled, 2, 2, 1);  //////////////////////////////////////////////////////////////This assumes that the raw image is always 2x smaller than processed
 	Ext.CLIJ2_release(MCNR_Mask);
 	if (preview == true) {		Ext.CLIJ2_pull(MCNR_Mask_Scaled);}
 	
@@ -183,13 +186,16 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	Ext.CLIJ2_release(MCNR_Mask_Scaled);
 	if (preview == true) {		Ext.CLIJ2_pull(centers_of_mass_stack_Masked);}
 	
+	//convert to 16 bit
+	Ext.CLIJ2_convertUInt16(centers_of_mass_stack_Masked, centers_of_mass_stack_Masked_sixteen);
+	if (preview == true) {		Ext.CLIJ2_pull(centers_of_mass_stack_Masked_sixteen);}
 	
 	//////////////////////////// CLASSIFIED NUCLEI SECTION
 	open(classified_nuclei_inputs_directory + File.separator + filelist_classified_nuclei_inputs[i]);
 	name_classified_nuclei_without_extension = File.nameWithoutExtension;
 	name_classified_nuclei = getTitle();
 	
-	///////////////////// Make measurements
+	///////////////////// Check on which class each foci sits on
 	// Statistics of labelled pixels
 	Ext.CLIJ2_push(name_classified_nuclei);
 	Ext.CLIJ2_statisticsOfLabelledPixels(name_classified_nuclei, centers_of_mass_stack_Masked);
@@ -208,18 +214,50 @@ for (i = 0; i < lengthOf(filelist_processed_inputs); i++) {
 	Table.deleteColumn("MAX_MEAN_DISTANCE_TO_MASS_CENTER_RATIO");Table.deleteColumn("SUM_DISTANCE_TO_CENTROID");
 	Table.deleteColumn("MEAN_DISTANCE_TO_CENTROID");Table.deleteColumn("MAX_DISTANCE_TO_CENTROID");Table.deleteColumn("MAX_MEAN_DISTANCE_TO_CENTROID_RATIO");
 	
-	// Add Row to results table with name of input image. Usefull for post processing
+	// Add column to results table with name of input image. Usefull for post processing
 	for (h = 0; h < nResults(); h++) {
 			setResult("Input_image_name", h, name_without_extension);
 		}
 		
 	Table.renameColumn("IDENTIFIER", "Label_number");
 	Table.renameColumn("MEAN_INTENSITY", "Chromatin_class");
-	Table.rename("Results", name_without_extension); // This is not really necessary since later, when saving whe set the name as well.
+	Table.rename("Results", name_without_extension); // This is not really necessary since later, when saving we set the name as well.
 	
 	saveAs("Results", output_directory +  File.separator + name_without_extension + ".csv");
 	tablename= name_without_extension + ".csv";
 	close(tablename);
+	
+	
+	///////////////////// Measure distance foci to interchromatin
+	
+	// Within Intensity Range, this wil combine classes into one
+	above_intensity = 1.0;
+	below_intensity = 8.0;
+	Ext.CLIJ2_withinIntensityRange(name_classified_nuclei, chromatin, above_intensity, below_intensity);
+	Ext.CLIJ2_release(name_classified_nuclei);
+	
+	Ext.CLIJ2_convertFloat(chromatin, chromatin_float);
+	Ext.CLIJ2_release(chromatin);
+	if (preview == true) {		Ext.CLIJ2_pull(chromatin_float);}
+	
+	// make isotropic with no interpoilation
+	factor_X = 1;
+	factor_Y = 1;
+	factor_Z = Voxel_depth / Voxel_width;
+	Ext.CLIJ2_downsample3D(chromatin_float, chromatin_float_isotropic, factor_X, factor_Y, factor_Z);
+	if (preview == true) {		Ext.CLIJ2_pull(chromatin_float_isotropic);}
+	
+	// Distance To Label Border Map
+	Ext.CLIJx_morphoLibJDistanceToLabelBorderMap(chromatin_float_isotropic, chromatin_float_isotropic_distance_to_border);
+	Ext.CLIJ2_release(chromatin_float_isotropic);
+	
+	Ext.CLIJ2_pull(chromatin_float_isotropic_distance_to_border);
+	run("Green Fire Blue");
+	Ext.CLIJ2_release(chromatin_float_isotropic_distance_to_border);
+	
+	
+	
+	
 	
 	//////////////////////////////////////////////////
 
